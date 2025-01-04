@@ -8,6 +8,15 @@ doesn't require them to work, some configuration may be added later to opt-out o
 
 Currently pre-built binaries only exist for Windows. Untested on MacOS or Linux (the generator is set up for them though!)
 
+## Building libktx
+
+See https://github.com/KhronosGroup/KTX-Software/blob/main/BUILDING.md for more information
+
+```bash
+cmake . -B build
+cmake --build build
+```
+
 ## License
 
 Bindings fall under MIT/Apache 2.0 dual license.

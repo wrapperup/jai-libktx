@@ -25,8 +25,9 @@
  * @author Mark Callow, Edgewise Consulting
  */
 
+// The vulkan header was included here, otherwise this header file is unmodified.
 #include <vulkan/vulkan.h>
-#include "ktx.h"
+#include <ktx.h>
 
 #if 0
 /* Avoid Vulkan include file */

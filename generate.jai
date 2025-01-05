@@ -1,7 +1,62 @@
+#run,stallable {
+    set_build_options_dc(.{do_output=false});
+    if !generate_all_bindings() {
+        compiler_set_workspace_status(.FAILED);
+    }
+}
+
+generate_all_bindings :: () -> bool {
+    success := generate_bindings_variant("ktx", .["include/ktx.h"]);
+    success &&= generate_bindings_variant("ktxvulkan", .["include/ktxvulkan.h"]);
+    return success;
+}
+
+generate_bindings_variant :: (output_name: string, includes: [] string) -> bool {
+    available_flag_bits = .{};
+
+    output_filename: string = ---;
+
+    opts: Generate_Bindings_Options;
+    {
+        using opts;
+
+        #if OS == .WINDOWS {
+            output_filename = tprint("%_windows.jai", output_name);
+            array_add(*libpaths, "windows");
+            array_add(*libnames, "ktx");
+            strip_flags = 0;
+        } else #if OS == .LINUX {
+            output_filename = tprint("%_linux.jai", output_name);
+            array_add(*libpaths, "linux");
+            array_add(*libnames, "libktx");
+            strip_flags = .INLINED_FUNCTIONS;
+        } else #if OS == .MACOS {
+            output_filename = tprint("%_macos.jai", output_name);
+            array_add(*libpaths, "macos");
+            array_add(*libnames, "libktx");
+            strip_flags = .INLINED_FUNCTIONS;
+        } else {
+            assert(false, "OS is not supported.");
+        }
+
+        for source_file: includes {
+            array_add(*source_files, source_file);
+        }
+
+        array_add(*system_include_paths, ".");
+        array_add(*system_include_paths, "./include");
+        array_add(*extra_clang_arguments, "-x", "c", "-DWIN32_LEAN_AND_MEAN");
+
+        visitor = libktx_visitor;
+    }
+
+    return generate_bindings(opts, output_filename);
+}
+
 available_flag_bits: Table(string, *Enum);
 
 OMIT_LIST :: string.[
-    "KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL",
+    "KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL", // This is marked as extern, so this is omitted and re-defined in modules.jai.
 ];
 
 libktx_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration_Visit_Result {
@@ -46,56 +101,6 @@ libktx_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration
 
     return .RECURSE;
 }
-
-#run {
-    set_build_options_dc(.{do_output=false});
-
-    output_filename: string;
-    opts: Generate_Bindings_Options;
-    {
-        using opts;
-
-        #if OS == .WINDOWS {
-            output_filename          = "windows.jai";
-            array_add(*libpaths,      "windows");
-            array_add(*libnames,      "ktx");
-            strip_flags = 0;
-        } else #if OS == .LINUX {
-            output_filename          = "linux.jai";
-            array_add(*libpaths,      "linux");
-            array_add(*libnames,      "libktx");
-            strip_flags = .INLINED_FUNCTIONS;
-        } else #if OS == .MACOS {
-            output_filename          = "macos.jai";
-            array_add(*libpaths,      "macos");
-            array_add(*libnames,      "libktx");
-            strip_flags = .INLINED_FUNCTIONS;
-        } else {
-            assert(false);
-        }
-
-        array_add(*source_files,  "include/ktx.h");
-        array_add(*source_files,  "include/ktxvulkan.h");
-        array_add(*system_include_paths, ".");
-
-        array_add(*extra_clang_arguments, "-x", "c", "-DWIN32_LEAN_AND_MEAN");
-
-        visitor = libktx_visitor;
-    }
-
-    builder, success := generate_bindings(opts, log_results = true);
-    if !success return;
-
-    append(*builder, "\n#scope_export;\n\n// Exported constants\n\nKTX_ETC1S_DEFAULT_COMPRESSION_LEVEL: ktx_uint32_t : 2;");
-
-    success = write_entire_file(output_filename, *builder);
-    if !success {
-        log_error("Could not write generated output to \"%\"", output_filename);
-        return;
-    }
-    log("\nOK! generated '%'", output_filename);
-}
-
 
 #import "Basic";
 #import "Bindings_Generator";

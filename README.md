@@ -3,8 +3,10 @@
 Bindings for Khronos' [libktx](https://github.com/KhronosGroup/KTX-Software), a library that
 provides functions for reading and writing KTX/KTX2 image files.
 
-This also optionally depends on [jai-vulkan](https://gitlab.com/Stowy/jai-vulkan) to provide Vulkan definitions
-If you don't want to depend on Vulkan, simply pass INCLUDE_KTX_VULKAN = false to strip out the Vulkan-specific functions, eg:
+## Usage
+
+This optionally depends on [jai-vulkan](https://gitlab.com/Stowy/jai-vulkan) to provide Vulkan definitions
+If you don't depend on Vulkan, you can strip out the Vulkan-specific functions with `INCLUDE_KTX_VULKAN = false`.
 
 ```c++
 #import "jai-libktx" ()(INCLUDE_KTX_VULKAN = false);

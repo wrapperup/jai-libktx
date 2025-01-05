@@ -5,7 +5,7 @@ provides functions for reading and writing KTX/KTX2 image files.
 
 ## Usage
 
-This optionally depends on [jai-vulkan](https://gitlab.com/Stowy/jai-vulkan) to provide Vulkan definitions
+This optionally depends on [jai-vulkan](https://gitlab.com/Stowy/jai-vulkan) to provide Vulkan definitions.
 If you don't depend on Vulkan, you can strip out the Vulkan-specific functions with `INCLUDE_KTX_VULKAN = false`.
 
 ```c++
